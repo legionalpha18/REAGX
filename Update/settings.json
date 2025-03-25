@@ -1,0 +1,26 @@
+{
+  "global_settings": {
+    "show_hide_esp": 1,
+    "signout_button": 1
+  },
+  "games": {
+    "com.pubg.imobile": {
+      "required_version": "3.7.0",
+      "status": "1",
+      "show": "1",
+      "name": "BGMI"
+    },
+    "com.tencent.ig": {
+      "required_version": "3.7.0",
+      "status": "1",
+      "show": "1",
+      "name": "PUBG MOBILE"
+    },
+    "com.pubg.krmobile": {
+      "required_version": "3.7.0",
+      "status": "1",
+      "show": "1",
+      "name": "PUBG KR"
+    }
+  }
+}
