@@ -5,6 +5,6 @@
   "button_update_now": "Update Now",
   "button_later": "Later",
   "show_login_button": 1,
-  "show_telegram_button": 1,
+  "show_telegram_button": 0,
   "show_input_field": 1
 }
