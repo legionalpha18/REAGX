@@ -1,0 +1,64 @@
+cmake_minimum_required(VERSION 3.4.1)
+
+project("jiagu")
+
+enable_language(ASM)
+
+# Set C++ Standard and Force Static Linking of C++ Runtime
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
+
+# Detect ABI and define bitness
+if (ANDROID_ABI MATCHES "^(armeabi-v7a|x86)$")
+    add_definitions("-D_32_BIT")
+elseif (ANDROID_ABI MATCHES "^(arm64-v8a|x86_64)$")
+    add_definitions("-D_64_BIT")
+endif ()
+
+# Set compiler and linker flags based on build type
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Building Debug Version")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
+    set(CMAKE_EXE_LINKER_FLAGS "")
+    set(CMAKE_SHARED_LINKER_FLAGS "")
+else()
+    message(STATUS "Building Release Version")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -ffunction-sections -fdata-sections -fvisibility=hidden -fvisibility-inlines-hidden")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -ffunction-sections -fdata-sections -fvisibility=hidden -fvisibility-inlines-hidden")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-x -Wl,-s -Wl,--gc-sections -Wl,-Bsymbolic -Wl,--exclude-libs,ALL")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-x -Wl,-s -Wl,--gc-sections -Wl,-Bsymbolic -Wl,--exclude-libs,ALL")
+endif ()
+
+# Define your native library
+add_library(jiagu SHARED native-lib.cpp)
+
+# Find system libraries
+find_library(log-lib log)
+
+# Import prebuilt libraries (static linking)
+add_library(libcurl STATIC IMPORTED)
+set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/curl/curl-android-${ANDROID_ABI}/lib/libcurl.a)
+
+add_library(libssl STATIC IMPORTED)
+set_target_properties(libssl PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/curl/openssl-android-${ANDROID_ABI}/lib/libssl.a)
+
+add_library(libcrypto STATIC IMPORTED)
+set_target_properties(libcrypto PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/curl/openssl-android-${ANDROID_ABI}/lib/libcrypto.a)
+
+# Include curl and openssl headers
+target_include_directories(jiagu PRIVATE 
+    ${CMAKE_SOURCE_DIR}/curl/curl-android-${ANDROID_ABI}/include
+    ${CMAKE_SOURCE_DIR}/curl/openssl-android-${ANDROID_ABI}/include
+)
+
+# Link everything together
+target_link_libraries(jiagu
+    android
+    z
+    ${log-lib}
+    libcurl
+    libssl
+    libcrypto
+)
